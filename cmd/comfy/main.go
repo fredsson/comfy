@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"log"
 	"os"
 	"time"
@@ -14,25 +15,44 @@ func main() {
 		log.Fatalf("Some error occured. Err: %s", envErr)
 	}
 
-	// var sensiboProxy = SensiboProxy{
-	// 	apiKey: os.Getenv("SENSIBO_API_KEY"),
-	// }
-	// var pods = sensiboProxy.FetchPods()
-	// fmt.Println(pods[0].Id)
-
-	// var smartMode = sensiboProxy.FetchSmartModeForPod(pods[0])
-	// fmt.Println(smartMode.Enabled)
+	var sensiboProxy = SensiboProxy{
+		apiKey: os.Getenv("SENSIBO_API_KEY"),
+	}
+	var pods = sensiboProxy.FetchPods()
+	var smartMode = sensiboProxy.FetchSmartModeForPod(pods[0])
+	var SmartModeEnabledInSensibo = smartMode.Enabled
 
 	var tibberProxy = TibberProxy{
 		apiKey: os.Getenv("TIBBER_API_KEY"),
 	}
 
 	var prices = tibberProxy.FetchPricesToday()
-	log.Println(prices)
 	for {
-		// check price for current hour
-		// if cheap -> enable smartMode (bool in ram to see if it's enabled already or not)
-		// if expensive -> disable smartMode
+		var currentPrice, priceErr = findHourlyPriceNow(prices)
+		if priceErr != nil {
+			log.Fatal(priceErr)
+		}
+
+		var shouldSmartModeBeEnabledNow = (currentPrice.Total <= 0.6000)
+		if shouldSmartModeBeEnabledNow != SmartModeEnabledInSensibo {
+			if shouldSmartModeBeEnabledNow {
+				sensiboProxy.EnableSmartMode()
+			} else {
+				sensiboProxy.DisableSmartMode()
+			}
+		}
 		time.Sleep(time.Hour) // TODO: calculate how much to sleep
 	}
+}
+
+func findHourlyPriceNow(array []HourlyPrice) (*HourlyPrice, error) {
+	var currentTime time.Time = time.Now()
+	for _, v := range array {
+		var difference = v.StartsAt.Sub(currentTime)
+		if difference > -time.Hour && difference <= 0 {
+			return &v, nil
+		}
+	}
+
+	return nil, errors.New("could not find Hourly Price")
 }

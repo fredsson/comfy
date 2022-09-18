@@ -67,6 +67,14 @@ func (p SensiboProxy) FetchSmartModeForPod(pod Pod) *SmartModeResult {
 	return &response.Result
 }
 
+func (p SensiboProxy) EnableSmartMode() {
+	log.Println("enabling smart mode!")
+}
+
+func (p SensiboProxy) DisableSmartMode() {
+	log.Println("disabled smart mode!")
+}
+
 func mapToPodsResponse(body io.ReadCloser) *PodsResponse {
 	response := new(PodsResponse)
 	err := decodeFromJson(body, response)
