@@ -63,9 +63,9 @@ func getDefaultSmartModeRequest() SmartModeRequest {
 		LowTemperatureThreshold: 19,
 		LowTemperatureState: TemperatureState{
 			On:                true,
-			TargetTemperature: 19,
+			TargetTemperature: 22,
 			TemperatureUnit:   "C",
-			Mode:              "auto",
+			Mode:              "heat",
 			FanLevel:          "auto",
 			Swing:             "rangeFull",
 		},
