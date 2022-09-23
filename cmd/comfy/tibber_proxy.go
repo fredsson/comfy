@@ -8,6 +8,11 @@ import (
 	"time"
 )
 
+type HeaderDefinition struct {
+	name  string
+	value string
+}
+
 type HourlyPrice struct {
 	Total    float32
 	StartsAt time.Time
@@ -39,7 +44,12 @@ func (p TibberProxy) FetchPricesToday() []HourlyPrice {
 		return mapToPricesTodayResponse(body)
 	}
 
-	var response = Post(url, p.apiKey, mapper).(*PricesTodayResponse)
+	var body = strings.NewReader(pricesTodayQuery)
+	var headers = []HeaderDefinition{
+		{"Content-Type", "application/json"},
+		{"Authorization", "Bearer " + p.apiKey},
+	}
+	var response = Post(url, body, headers, mapper).(*PricesTodayResponse)
 	return response.Data.Viewer.Homes[0].CurrentSubscription.PriceInfo.Today
 }
 
@@ -52,14 +62,15 @@ func mapToPricesTodayResponse(body io.ReadCloser) *PricesTodayResponse {
 	return response
 }
 
-func Post(url string, apiKey string, m mapper) interface{} {
-	var myReader = strings.NewReader(pricesTodayQuery)
-	var req, err = http.NewRequest("POST", url, myReader)
+func Post(url string, body io.Reader, headers []HeaderDefinition, m mapper) interface{} {
+	var req, err = http.NewRequest("POST", url, body)
 	if err != nil {
 		log.Fatal("woopsi ", err)
 	}
-	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("Authorization", "Bearer "+apiKey)
+
+	for _, h := range headers {
+		req.Header.Add(h.name, h.value)
+	}
 
 	log.Println("Sending Post request to " + url)
 	var resp, reqErr = http.DefaultClient.Do(req)

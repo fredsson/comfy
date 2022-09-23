@@ -19,7 +19,8 @@ func main() {
 		apiKey: os.Getenv("SENSIBO_API_KEY"),
 	}
 	var pods = sensiboProxy.FetchPods()
-	var smartMode = sensiboProxy.FetchSmartModeForPod(pods[0])
+	var pod = pods[0]
+	var smartMode = sensiboProxy.FetchSmartModeForPod(pod)
 	var SmartModeEnabledInSensibo = smartMode.Enabled
 
 	var tibberProxy = TibberProxy{
@@ -33,14 +34,15 @@ func main() {
 			log.Fatal(priceErr)
 		}
 
-		var shouldSmartModeBeEnabledNow = (currentPrice.Total <= 0.6000)
+		var shouldSmartModeBeEnabledNow = (currentPrice.Total <= 1.0000)
 		if shouldSmartModeBeEnabledNow != SmartModeEnabledInSensibo {
 			if shouldSmartModeBeEnabledNow {
-				sensiboProxy.EnableSmartMode()
+				sensiboProxy.EnableSmartMode(pod)
 			} else {
-				sensiboProxy.DisableSmartMode()
+				sensiboProxy.DisableSmartMode(pod)
 			}
 		}
+		log.Println("Waiting an hour for next update")
 		time.Sleep(time.Hour) // TODO: calculate how much to sleep
 	}
 }
