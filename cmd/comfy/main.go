@@ -48,9 +48,9 @@ func main() {
 }
 
 func findHourlyPriceNow(array []HourlyPrice) (*HourlyPrice, error) {
-	var currentTime time.Time = time.Now()
+	var currentTime time.Time = time.Now().UTC()
 	for _, v := range array {
-		var difference = v.StartsAt.Sub(currentTime)
+		var difference = v.StartsAt.UTC().Sub(currentTime)
 		if difference > -time.Hour && difference <= 0 {
 			return &v, nil
 		}
