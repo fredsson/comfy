@@ -64,11 +64,5 @@ func findHourlyPriceNow(array []HourlyPrice) (*HourlyPrice, error) {
 }
 
 func getTimeForNextRun() time.Time {
-	var currentTime time.Time = time.Now().UTC()
-	var hour = currentTime.Hour() + 1
-	if hour == 24 {
-		return time.Date(currentTime.Year(), currentTime.Month(), currentTime.Day()+1, 0, 0, 0, 0, time.UTC)
-	}
-
-	return time.Date(currentTime.Year(), currentTime.Month(), currentTime.Day(), hour, 0, 0, 0, time.UTC)
+	return time.Now().UTC().Add(time.Hour).Truncate(time.Hour)
 }
