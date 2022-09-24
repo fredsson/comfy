@@ -42,8 +42,12 @@ func main() {
 				sensiboProxy.DisableSmartMode(pod)
 			}
 		}
-		log.Println("Waiting an hour for next update")
-		time.Sleep(time.Hour) // TODO: calculate how much to sleep
+
+		var timeForNextRun = getTimeForNextRun()
+		var now = time.Now().UTC()
+		var durationToNextRun = timeForNextRun.Sub(now)
+		log.Println("Waiting", durationToNextRun, "for next update (", timeForNextRun, ")")
+		time.Sleep(durationToNextRun)
 	}
 }
 
@@ -57,4 +61,14 @@ func findHourlyPriceNow(array []HourlyPrice) (*HourlyPrice, error) {
 	}
 
 	return nil, errors.New("could not find Hourly Price")
+}
+
+func getTimeForNextRun() time.Time {
+	var currentTime time.Time = time.Now().UTC()
+	var hour = currentTime.Hour() + 1
+	if hour == 24 {
+		return time.Date(currentTime.Year(), currentTime.Month(), currentTime.Day()+1, 0, 0, 0, 0, time.UTC)
+	}
+
+	return time.Date(currentTime.Year(), currentTime.Month(), currentTime.Day(), hour, 0, 0, 0, time.UTC)
 }
