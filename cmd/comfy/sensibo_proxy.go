@@ -10,6 +10,7 @@ import (
 
 const getUserPodIdsPath = "https://home.sensibo.com/api/v2/users/me/pods?fields=id&apiKey="
 const podSmartModePath = "https://home.sensibo.com/api/v2/pods/{device_id}/smartmode?apiKey="
+const podAcStatePath = "https://home.sensibo.com/api/v2/pods/{device_id}/acStates?apiKey="
 
 type SensiboProxy struct {
 	apiKey string
@@ -54,6 +55,14 @@ type SmartModeRequest struct {
 	LowTemperatureState      TemperatureState `json:"lowTemperatureState"`
 	HighTemperatureThreshold float32          `json:"highTemperatureThreshold"`
 	HighTemperatureState     TemperatureState `json:"highTemperatureState"`
+}
+
+type AcState struct {
+	On bool `json:"on"`
+}
+
+type AcStateRequest struct {
+	AcState AcState `json:"acState"`
 }
 
 func getDefaultSmartModeRequest() SmartModeRequest {
@@ -107,8 +116,9 @@ func (p SensiboProxy) EnableSmartMode(pod Pod) {
 }
 
 func (p SensiboProxy) DisableSmartMode(pod Pod) {
-	log.Println("Disabling smart mode!")
+	log.Println("Disabling smart mode and shutting down AC!")
 	p.SetSmartMode(pod, false)
+	p.disableAc(pod)
 }
 
 func (p SensiboProxy) SetSmartMode(pod Pod, enabled bool) {
@@ -130,6 +140,26 @@ func (p SensiboProxy) SetSmartMode(pod Pod, enabled bool) {
 		log.Fatal("Could not marshal smart mode request")
 	}
 	Post(smartModePathWithDeviceId+p.apiKey, strings.NewReader(string(body)), []HeaderDefinition{}, mapper)
+}
+
+func (p SensiboProxy) disableAc(pod Pod) {
+	var acStateMapper = func(body io.ReadCloser) interface{} {
+		return nil
+	}
+	var disableAcBody = AcStateRequest{
+		AcState{
+			On: false,
+		},
+	}
+
+	var b, marshalError = json.Marshal(disableAcBody)
+	if marshalError != nil {
+		log.Fatal("Could not marshal disable ac request")
+	}
+
+	var body = strings.NewReader(string(b))
+	var disableAcUrlWithDevice = strings.ReplaceAll(podAcStatePath, "{device_id}", pod.Id) + p.apiKey
+	Post(disableAcUrlWithDevice, body, []HeaderDefinition{}, acStateMapper)
 }
 
 func mapToPodsResponse(body io.ReadCloser) *PodsResponse {
