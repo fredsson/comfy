@@ -27,8 +27,8 @@ func main() {
 		apiKey: os.Getenv("TIBBER_API_KEY"),
 	}
 
-	var prices = tibberProxy.FetchPricesToday()
 	for {
+		var prices = tibberProxy.FetchPricesToday()
 		var currentPrice, priceErr = findHourlyPriceNow(prices)
 		if priceErr != nil {
 			log.Fatal(priceErr)
