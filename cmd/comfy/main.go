@@ -37,8 +37,10 @@ func main() {
 		var shouldSmartModeBeEnabledNow = (currentPrice.Total <= 1.0000)
 		if shouldSmartModeBeEnabledNow != SmartModeEnabledInSensibo {
 			if shouldSmartModeBeEnabledNow {
+				SmartModeEnabledInSensibo = true
 				sensiboProxy.EnableSmartMode(pod)
 			} else {
+				SmartModeEnabledInSensibo = false
 				sensiboProxy.DisableSmartMode(pod)
 			}
 		}
