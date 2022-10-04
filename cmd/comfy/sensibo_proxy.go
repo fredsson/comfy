@@ -69,7 +69,7 @@ func getDefaultSmartModeRequest() SmartModeRequest {
 	return SmartModeRequest{
 		Enabled:                 false,
 		Type:                    "temperature",
-		LowTemperatureThreshold: 19,
+		LowTemperatureThreshold: 20,
 		LowTemperatureState: TemperatureState{
 			On:                true,
 			TargetTemperature: 22,
