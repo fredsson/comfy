@@ -32,7 +32,7 @@ type PricesTodayResponse struct {
 	}
 }
 
-const pricesTodayQuery = `{"query":"{\nviewer{\nhomes{\ncurrentSubscription{\npriceInfo{\ntoday{\n total\n startsAt\n}\n\n}\n}\n}\n}\n}\n"}`
+const pricesTodayQuery = `{"query":"{\nviewer{\nhomes{\ncurrentSubscription{\npriceInfo{\ntoday{\ntotal\nstartsAt\n}\ntomorrow{\ntotal\nstartsAt\n}\n}\n}\n}\n}\n}"}`
 
 type TibberProxy struct {
 	apiKey string
