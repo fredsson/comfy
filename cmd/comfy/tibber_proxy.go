@@ -24,7 +24,8 @@ type PricesTodayResponse struct {
 			Homes []struct {
 				CurrentSubscription struct {
 					PriceInfo struct {
-						Today []HourlyPrice
+						Today    []HourlyPrice
+						Tomorrow []HourlyPrice
 					}
 				}
 			}
@@ -50,7 +51,9 @@ func (p TibberProxy) FetchPricesToday() []HourlyPrice {
 		{"Authorization", "Bearer " + p.apiKey},
 	}
 	var response = Post(url, body, headers, mapper).(*PricesTodayResponse)
-	return response.Data.Viewer.Homes[0].CurrentSubscription.PriceInfo.Today
+	var today = response.Data.Viewer.Homes[0].CurrentSubscription.PriceInfo.Today
+	var tomorrow = response.Data.Viewer.Homes[0].CurrentSubscription.PriceInfo.Tomorrow
+	return append(today, tomorrow...)
 }
 
 func mapToPricesTodayResponse(body io.ReadCloser) *PricesTodayResponse {

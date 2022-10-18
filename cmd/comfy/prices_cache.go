@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"log"
 	"strconv"
 	"time"
 )
@@ -22,10 +23,16 @@ func initPricesCache(fetchCallback FetchPrices) *PricesCache {
 }
 
 func (pricesCache *PricesCache) refreshPrices(pricesToday []HourlyPrice) {
+	log.Printf("Refreshing prices!")
 	pricesCache.prices = make(map[string]*HourlyPrice, 48)
 	for _, value := range pricesToday {
 		var key string = pricesCache.getLookupKey(value.StartsAt)
 		pricesCache.prices[key] = &value
+	}
+
+	var allkeys string = ""
+	for k := range pricesCache.prices {
+		allkeys += " " + k
 	}
 }
 
@@ -46,9 +53,16 @@ func (pricesCache *PricesCache) getHourlyPrice(currentTime time.Time) (*HourlyPr
 func (*PricesCache) getLookupKey(currentTime time.Time) string {
 	var day = currentTime.Day()
 	var hour = currentTime.Hour()
-	return strconv.Itoa(day) + strconv.Itoa(hour)
+	return convertToDoubleDigitString(day) + convertToDoubleDigitString(hour)
 }
 
 func (pricesCache *PricesCache) cacheContainsKey(key string) bool {
 	return pricesCache.prices[key] != nil
+}
+
+func convertToDoubleDigitString(value int) string {
+	if value >= 0 && value < 10 {
+		return "0" + strconv.Itoa(value)
+	}
+	return strconv.Itoa(value)
 }

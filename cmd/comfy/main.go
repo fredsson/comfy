@@ -38,6 +38,8 @@ func main() {
 			log.Fatal(priceErrNextHour)
 		}
 
+		log.Printf("got prices: %f, %f", currentPrice.Total, nextHoursPrice.Total)
+
 		var shouldSmartModeBeEnabledNow = !priceExceedsTreshold(currentPrice)
 		if shouldSmartModeBeEnabledNow != SmartModeEnabledInSensibo {
 			if shouldSmartModeBeEnabledNow {
