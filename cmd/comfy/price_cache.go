@@ -26,13 +26,13 @@ func (priceCache *PriceCache) refreshPrices(prices []HourlyPrice) {
 	log.Printf("Refreshing prices!")
 	priceCache.prices = make(map[string]*HourlyPrice, len(prices))
 	for _, value := range prices {
-		var key string = priceCache.getLookupKey(value.StartsAt)
+		var key string = priceCache.getLookupKey(value.StartsAt.UTC())
 		priceCache.prices[key] = &value
 	}
 }
 
 func (priceCache *PriceCache) getHourlyPrice(currentTime time.Time) (*HourlyPrice, error) {
-	var key string = priceCache.getLookupKey(currentTime)
+	var key string = priceCache.getLookupKey(currentTime.UTC())
 
 	if !priceCache.cacheContainsKey(key) {
 		priceCache.refreshPrices(priceCache.fetchCallback())
