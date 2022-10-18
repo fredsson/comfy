@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"log"
 	"os"
 	"time"
@@ -26,10 +25,11 @@ func main() {
 	var tibberProxy = TibberProxy{
 		apiKey: os.Getenv("TIBBER_API_KEY"),
 	}
+	var pricesCache = initPricesCache(tibberProxy.FetchPricesToday)
 
 	for {
-		var prices = tibberProxy.FetchPricesToday()
-		var currentPrice, priceErr = findHourlyPriceNow(prices)
+		var currentPrice, priceErr = pricesCache.getHourlyPrice(time.Now())
+
 		if priceErr != nil {
 			log.Fatal(priceErr)
 		}
@@ -51,18 +51,6 @@ func main() {
 		log.Println("Waiting", durationToNextRun, "for next update (", timeForNextRun, ")")
 		time.Sleep(durationToNextRun)
 	}
-}
-
-func findHourlyPriceNow(array []HourlyPrice) (*HourlyPrice, error) {
-	var currentTime time.Time = time.Now().UTC()
-	for _, v := range array {
-		var difference = v.StartsAt.UTC().Sub(currentTime)
-		if difference > -time.Hour && difference <= 0 {
-			return &v, nil
-		}
-	}
-
-	return nil, errors.New("could not find Hourly Price")
 }
 
 func getTimeForNextRun() time.Time {
