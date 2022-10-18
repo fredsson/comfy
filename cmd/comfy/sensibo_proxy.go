@@ -142,19 +142,27 @@ func (p SensiboProxy) SetSmartMode(pod Pod, enabled bool) {
 	Post(smartModePathWithDeviceId+p.apiKey, strings.NewReader(string(body)), []HeaderDefinition{}, mapper)
 }
 
+func (p SensiboProxy) enableAc(pod Pod) {
+	p.setAcState(true, pod)
+}
+
 func (p SensiboProxy) disableAc(pod Pod) {
+	p.setAcState(false, pod)
+}
+
+func (p SensiboProxy) setAcState(enableAc bool, pod Pod) {
 	var acStateMapper = func(body io.ReadCloser) interface{} {
 		return nil
 	}
 	var disableAcBody = AcStateRequest{
 		AcState{
-			On: false,
+			On: enableAc,
 		},
 	}
 
 	var b, marshalError = json.Marshal(disableAcBody)
 	if marshalError != nil {
-		log.Fatal("Could not marshal disable ac request")
+		log.Fatal("Could not marshal set ac request")
 	}
 
 	var body = strings.NewReader(string(b))

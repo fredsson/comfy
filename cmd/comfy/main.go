@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"log"
 	"os"
 	"time"
@@ -26,15 +25,20 @@ func main() {
 	var tibberProxy = TibberProxy{
 		apiKey: os.Getenv("TIBBER_API_KEY"),
 	}
+	var priceCache = initPriceCache(tibberProxy.FetchPrices)
 
 	for {
-		var prices = tibberProxy.FetchPricesToday()
-		var currentPrice, priceErr = findHourlyPriceNow(prices)
+		var currentPrice, priceErr = priceCache.getHourlyPrice(time.Now())
+		var nextHoursPrice, priceErrNextHour = priceCache.getHourlyPrice(time.Now().Add(time.Hour))
+
 		if priceErr != nil {
 			log.Fatal(priceErr)
 		}
+		if priceErrNextHour != nil {
+			log.Fatal(priceErrNextHour)
+		}
 
-		var shouldSmartModeBeEnabledNow = (currentPrice.Total <= 1.0000)
+		var shouldSmartModeBeEnabledNow = !priceExceedsTreshold(currentPrice)
 		if shouldSmartModeBeEnabledNow != SmartModeEnabledInSensibo {
 			if shouldSmartModeBeEnabledNow {
 				SmartModeEnabledInSensibo = true
@@ -43,6 +47,9 @@ func main() {
 				SmartModeEnabledInSensibo = false
 				sensiboProxy.DisableSmartMode(pod)
 			}
+		}
+		if shouldSmartModeBeEnabledNow && priceExceedsTreshold(nextHoursPrice) {
+			sensiboProxy.enableAc(pod)
 		}
 
 		var timeForNextRun = getTimeForNextRun()
@@ -53,18 +60,10 @@ func main() {
 	}
 }
 
-func findHourlyPriceNow(array []HourlyPrice) (*HourlyPrice, error) {
-	var currentTime time.Time = time.Now().UTC()
-	for _, v := range array {
-		var difference = v.StartsAt.UTC().Sub(currentTime)
-		if difference > -time.Hour && difference <= 0 {
-			return &v, nil
-		}
-	}
-
-	return nil, errors.New("could not find Hourly Price")
-}
-
 func getTimeForNextRun() time.Time {
 	return time.Now().UTC().Add(time.Hour).Truncate(time.Hour)
+}
+
+func priceExceedsTreshold(price *HourlyPrice) bool {
+	return price.Total > 1.0000
 }
