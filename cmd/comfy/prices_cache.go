@@ -29,11 +29,6 @@ func (pricesCache *PricesCache) refreshPrices(pricesToday []HourlyPrice) {
 		var key string = pricesCache.getLookupKey(value.StartsAt)
 		pricesCache.prices[key] = &value
 	}
-
-	var allkeys string = ""
-	for k := range pricesCache.prices {
-		allkeys += " " + k
-	}
 }
 
 func (pricesCache *PricesCache) getHourlyPrice(currentTime time.Time) (*HourlyPrice, error) {
