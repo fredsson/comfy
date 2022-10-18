@@ -25,11 +25,11 @@ func main() {
 	var tibberProxy = TibberProxy{
 		apiKey: os.Getenv("TIBBER_API_KEY"),
 	}
-	var pricesCache = initPricesCache(tibberProxy.FetchPricesToday)
+	var priceCache = initPriceCache(tibberProxy.FetchPricesToday)
 
 	for {
-		var currentPrice, priceErr = pricesCache.getHourlyPrice(time.Now())
-		var nextHoursPrice, priceErrNextHour = pricesCache.getHourlyPrice(time.Now().Add(time.Hour * 1))
+		var currentPrice, priceErr = priceCache.getHourlyPrice(time.Now())
+		var nextHoursPrice, priceErrNextHour = priceCache.getHourlyPrice(time.Now().Add(time.Hour * 1))
 
 		if priceErr != nil {
 			log.Fatal(priceErr)
