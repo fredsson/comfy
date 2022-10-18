@@ -2,11 +2,12 @@ package main
 
 import (
 	"errors"
+	"strconv"
 	"time"
 )
 
 type PricesCache struct {
-	prices        map[time.Time]HourlyPrice
+	prices        map[string]*HourlyPrice
 	fetchCallback FetchPrices
 }
 
@@ -21,22 +22,33 @@ func initPricesCache(fetchCallback FetchPrices) *PricesCache {
 }
 
 func (pricesCache *PricesCache) refreshPrices(pricesToday []HourlyPrice) {
-	pricesCache.prices = make(map[time.Time]HourlyPrice, 24)
+	pricesCache.prices = make(map[string]*HourlyPrice, 48)
 	for _, value := range pricesToday {
-		pricesCache.prices[value.StartsAt] = value
+		var key string = pricesCache.getLookupKey(value.StartsAt)
+		pricesCache.prices[key] = &value
 	}
 }
 
 func (pricesCache *PricesCache) getHourlyPrice(currentTime time.Time) (*HourlyPrice, error) {
-	if currentTime.Hour() == 0 {
+	var key string = pricesCache.getLookupKey(currentTime)
+
+	if !pricesCache.cacheContainsKey(key) {
 		pricesCache.refreshPrices(pricesCache.fetchCallback())
 	}
+	var hourlyPrice *HourlyPrice = pricesCache.prices[key]
 
-	for key, value := range pricesCache.prices {
-		if key.Day() == currentTime.Day() && key.UTC().Hour() == currentTime.UTC().Hour() {
-			return &value, nil
-		}
+	if hourlyPrice == nil {
+		return nil, errors.New("could not find Hourly Price")
 	}
+	return hourlyPrice, nil
+}
 
-	return nil, errors.New("could not find Hourly Price")
+func (*PricesCache) getLookupKey(currentTime time.Time) string {
+	var day = currentTime.Day()
+	var hour = currentTime.Hour()
+	return strconv.Itoa(day) + strconv.Itoa(hour)
+}
+
+func (pricesCache *PricesCache) cacheContainsKey(key string) bool {
+	return pricesCache.prices[key] != nil
 }
