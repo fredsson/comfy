@@ -18,7 +18,7 @@ type HourlyPrice struct {
 	StartsAt time.Time
 }
 
-type PricesTodayResponse struct {
+type PricesResponse struct {
 	Data struct {
 		Viewer struct {
 			Homes []struct {
@@ -33,34 +33,34 @@ type PricesTodayResponse struct {
 	}
 }
 
-const pricesTodayQuery = `{"query":"{\nviewer{\nhomes{\ncurrentSubscription{\npriceInfo{\ntoday{\ntotal\nstartsAt\n}\ntomorrow{\ntotal\nstartsAt\n}\n}\n}\n}\n}\n}"}`
+const pricesQuery = `{"query":"{\nviewer{\nhomes{\ncurrentSubscription{\npriceInfo{\ntoday{\ntotal\nstartsAt\n}\ntomorrow{\ntotal\nstartsAt\n}\n}\n}\n}\n}\n}"}`
 
 type TibberProxy struct {
 	apiKey string
 }
 
-func (p TibberProxy) FetchPricesToday() []HourlyPrice {
+func (p TibberProxy) FetchPrices() []HourlyPrice {
 	var url = "https://api.tibber.com/v1-beta/gql"
 	var mapper = func(body io.ReadCloser) interface{} {
-		return mapToPricesTodayResponse(body)
+		return mapToPricesResponse(body)
 	}
 
-	var body = strings.NewReader(pricesTodayQuery)
+	var body = strings.NewReader(pricesQuery)
 	var headers = []HeaderDefinition{
 		{"Content-Type", "application/json"},
 		{"Authorization", "Bearer " + p.apiKey},
 	}
-	var response = Post(url, body, headers, mapper).(*PricesTodayResponse)
+	var response = Post(url, body, headers, mapper).(*PricesResponse)
 	var today = response.Data.Viewer.Homes[0].CurrentSubscription.PriceInfo.Today
 	var tomorrow = response.Data.Viewer.Homes[0].CurrentSubscription.PriceInfo.Tomorrow
 	return append(today, tomorrow...)
 }
 
-func mapToPricesTodayResponse(body io.ReadCloser) *PricesTodayResponse {
-	response := new(PricesTodayResponse)
+func mapToPricesResponse(body io.ReadCloser) *PricesResponse {
+	response := new(PricesResponse)
 	err := decodeFromJson(body, response)
 	if err != nil {
-		log.Fatal("Could not decode Prices today response", err)
+		log.Fatal("Could not decode Prices response", err)
 	}
 	return response
 }

@@ -7,12 +7,12 @@ import (
 	"time"
 )
 
+type FetchPrices = func() []HourlyPrice
+
 type PriceCache struct {
 	prices        map[string]*HourlyPrice
 	fetchCallback FetchPrices
 }
-
-type FetchPrices = func() []HourlyPrice
 
 func initPriceCache(fetchCallback FetchPrices) *PriceCache {
 	var priceCache = &PriceCache{prices: nil, fetchCallback: fetchCallback}
@@ -22,10 +22,10 @@ func initPriceCache(fetchCallback FetchPrices) *PriceCache {
 	return priceCache
 }
 
-func (priceCache *PriceCache) refreshPrices(pricesToday []HourlyPrice) {
+func (priceCache *PriceCache) refreshPrices(prices []HourlyPrice) {
 	log.Printf("Refreshing prices!")
 	priceCache.prices = make(map[string]*HourlyPrice, 48)
-	for _, value := range pricesToday {
+	for _, value := range prices {
 		var key string = priceCache.getLookupKey(value.StartsAt)
 		priceCache.prices[key] = &value
 	}
