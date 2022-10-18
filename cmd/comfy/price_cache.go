@@ -24,7 +24,7 @@ func initPriceCache(fetchCallback FetchPrices) *PriceCache {
 
 func (priceCache *PriceCache) refreshPrices(prices []HourlyPrice) {
 	log.Printf("Refreshing prices!")
-	priceCache.prices = make(map[string]*HourlyPrice, 48)
+	priceCache.prices = make(map[string]*HourlyPrice, len(prices))
 	for _, value := range prices {
 		var key string = priceCache.getLookupKey(value.StartsAt)
 		priceCache.prices[key] = &value
