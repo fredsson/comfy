@@ -10,7 +10,8 @@ import (
 type FetchPrices = func() []HourlyPrice
 
 type PriceCache struct {
-	prices        map[string]*HourlyPrice
+	prices        []HourlyPrice
+	pricesByKey   map[string]*HourlyPrice
 	fetchCallback FetchPrices
 }
 
@@ -24,10 +25,11 @@ func initPriceCache(fetchCallback FetchPrices) *PriceCache {
 
 func (priceCache *PriceCache) refreshPrices(prices []HourlyPrice) {
 	log.Printf("Refreshing prices!")
-	priceCache.prices = make(map[string]*HourlyPrice, len(prices))
-	for _, value := range prices {
+	priceCache.prices = prices
+	priceCache.pricesByKey = make(map[string]*HourlyPrice, len(prices))
+	for index, value := range prices {
 		var key string = priceCache.getLookupKey(value.StartsAt.UTC())
-		priceCache.prices[key] = &value
+		priceCache.pricesByKey[key] = &prices[index]
 	}
 }
 
@@ -37,7 +39,7 @@ func (priceCache *PriceCache) getHourlyPrice(currentTime time.Time) (*HourlyPric
 	if !priceCache.cacheContainsKey(key) {
 		priceCache.refreshPrices(priceCache.fetchCallback())
 	}
-	var hourlyPrice *HourlyPrice = priceCache.prices[key]
+	var hourlyPrice *HourlyPrice = priceCache.pricesByKey[key]
 
 	if hourlyPrice == nil {
 		return nil, errors.New("could not find Hourly Price")
@@ -52,7 +54,7 @@ func (*PriceCache) getLookupKey(currentTime time.Time) string {
 }
 
 func (priceCache *PriceCache) cacheContainsKey(key string) bool {
-	return priceCache.prices[key] != nil
+	return priceCache.pricesByKey[key] != nil
 }
 
 func convertToDoubleDigitString(value int) string {
