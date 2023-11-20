@@ -42,7 +42,7 @@ func main() {
 			log.Fatal(currentTempErr)
 		}
 
-		var shouldSmartModeBeEnabledNow = !priceExceedsTreshold(currentPrice) || currentTemperature < 18
+		var shouldSmartModeBeEnabledNow = !priceExceedsTreshold(currentPrice) || isTooCold(currentTemperature)
 		if shouldSmartModeBeEnabledNow != SmartModeEnabledInSensibo {
 			if shouldSmartModeBeEnabledNow {
 				SmartModeEnabledInSensibo = true
@@ -70,4 +70,8 @@ func getTimeForNextRun() time.Time {
 
 func priceExceedsTreshold(price *HourlyPrice) bool {
 	return price.Total > 1.5000
+}
+
+func isTooCold(temperature float32) bool {
+	return temperature < 18
 }
