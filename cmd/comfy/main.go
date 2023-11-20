@@ -65,5 +65,5 @@ func getTimeForNextRun() time.Time {
 }
 
 func priceExceedsTreshold(price *HourlyPrice) bool {
-	return price.Total > 1.0000
+	return price.Total > 1.5000
 }
