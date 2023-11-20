@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"log"
 	"net/http"
@@ -11,6 +12,7 @@ import (
 const getUserPodIdsPath = "https://home.sensibo.com/api/v2/users/me/pods?fields=id&apiKey="
 const podSmartModePath = "https://home.sensibo.com/api/v2/pods/{device_id}/smartmode?apiKey="
 const podAcStatePath = "https://home.sensibo.com/api/v2/pods/{device_id}/acStates?apiKey="
+const podInfoPath = "https://home.sensibo.com/api/v2/pods/{device_id}?fields=measurements&apiKey="
 
 type SensiboProxy struct {
 	apiKey string
@@ -65,6 +67,15 @@ type AcStateRequest struct {
 	AcState AcState `json:"acState"`
 }
 
+type PodInfoResponse struct {
+	Status string
+	Result struct {
+		Measurements struct {
+			Temperature float32
+		}
+	}
+}
+
 func getDefaultSmartModeRequest() SmartModeRequest {
 	return SmartModeRequest{
 		Enabled:                 false,
@@ -99,6 +110,19 @@ func (p SensiboProxy) FetchPods() []Pod {
 
 	var response = Get(getUserPodIdsPath+p.apiKey, podsMapper).(*PodsResponse)
 	return response.Result
+}
+
+func (p SensiboProxy) FetchCurrentTemperature(pod Pod) (float32, error) {
+	var podMapper = func(body io.ReadCloser) interface{} {
+		return mapToPodInfoResponse(body)
+	}
+	var podInfoPathWithDeviceId = strings.ReplaceAll(podInfoPath, "{device_id}", pod.Id)
+	var response = Get(podInfoPathWithDeviceId+p.apiKey, podMapper).(*PodInfoResponse)
+
+	if response.Status != "success" {
+		return -1, errors.New("woopsie! Could not fetch current temperature")
+	}
+	return response.Result.Measurements.Temperature, nil
 }
 
 func (p SensiboProxy) FetchSmartModeForPod(pod Pod) *SmartModeResult {
@@ -185,6 +209,15 @@ func mapToSmartModeResponse(body io.ReadCloser) *SmartModeResponse {
 	err := decodeFromJson(body, response)
 	if err != nil {
 		log.Fatal("Could not decode Smart mode response", err)
+	}
+	return response
+}
+
+func mapToPodInfoResponse(body io.ReadCloser) *PodInfoResponse {
+	response := new(PodInfoResponse)
+	err := decodeFromJson(body, response)
+	if err != nil {
+		log.Fatal("Could not decode Pod info response", err)
 	}
 	return response
 }
