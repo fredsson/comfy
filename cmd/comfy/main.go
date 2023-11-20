@@ -30,6 +30,7 @@ func main() {
 	for {
 		var currentPrice, priceErr = priceCache.getHourlyPrice(time.Now())
 		var nextHoursPrice, priceErrNextHour = priceCache.getHourlyPrice(time.Now().Add(time.Hour))
+		var currentTemperature, currentTempErr = sensiboProxy.FetchCurrentTemperature(pod)
 
 		if priceErr != nil {
 			log.Fatal(priceErr)
@@ -37,8 +38,11 @@ func main() {
 		if priceErrNextHour != nil {
 			log.Fatal(priceErrNextHour)
 		}
+		if currentTempErr != nil {
+			log.Fatal(currentTempErr)
+		}
 
-		var shouldSmartModeBeEnabledNow = !priceExceedsTreshold(currentPrice)
+		var shouldSmartModeBeEnabledNow = !priceExceedsTreshold(currentPrice) || currentTemperature < 18
 		if shouldSmartModeBeEnabledNow != SmartModeEnabledInSensibo {
 			if shouldSmartModeBeEnabledNow {
 				SmartModeEnabledInSensibo = true
