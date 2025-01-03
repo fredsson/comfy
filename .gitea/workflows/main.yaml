@@ -39,5 +39,5 @@ jobs:
           password: ${{ secrets.PAT_TOKEN }}
       - name: Build and push
         run: |
-          docker build -f prod.dockerfile -t gitea.cymbaldev.local/cymbaldev/comfy:v1.0.0 .
-          docker push gitea.cymbaldev.local/cymbaldev/comfy:v1.0.0
+          docker build -f prod.dockerfile -t gitea.cymbaldev.local/cybot/comfy:v1.0.0 .
+          docker push gitea.cymbaldev.local/cybot/comfy:v1.0.0
