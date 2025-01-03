@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - master
+      - gitea_workflow
 
 jobs:
   run-tests:
