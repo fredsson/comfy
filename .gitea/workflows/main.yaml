@@ -7,9 +7,6 @@ on:
     tags:
       - 'v*'
 
-env:
-  GITEA_URL: gitea.cymbaldev.local
-
 jobs:
   run-tests:
     name: Run Tests
@@ -45,5 +42,5 @@ jobs:
           password: ${{ secrets.PAT_TOKEN }}
       - name: Build and push
         run: |
-          docker build -f prod.dockerfile -t ${{ GITEA_URL }}/${{ github.repository }}:${{ github.ref_name }} .
-          docker push ${{ GITEA_URL }}/${{ github.repository }}:${{ github.ref_name }}
+          docker build -f prod.dockerfile -t gitea.cymbaldev.local/${{ github.repository }}:${{ github.ref_name }} .
+          docker push gitea.cymbaldev.local/${{ github.repository }}:${{ github.ref_name }}
