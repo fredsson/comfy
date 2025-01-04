@@ -42,5 +42,5 @@ jobs:
           password: ${{ secrets.PAT_TOKEN }}
       - name: Build and push
         run: |
-          docker build -f prod.dockerfile -t gitea.cymbaldev.local/cymbaldev/comfy:${{ github.event.ref }} .
-          docker push gitea.cymbaldev.local/cymbaldev/comfy:${{ github.event.ref }}
+          docker build -f prod.dockerfile -t gitea.cymbaldev.local/cymbaldev/comfy:${{ github.ref_name }} .
+          docker push gitea.cymbaldev.local/cymbaldev/comfy:${{ github.ref_name }}
