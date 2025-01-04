@@ -7,6 +7,9 @@ on:
     tags:
       - 'v*'
 
+env:
+  GITEA_URL: gitea.cymbaldev.local
+
 jobs:
   run-tests:
     name: Run Tests
@@ -37,10 +40,10 @@ jobs:
       - name: Login to Gitea Docker Registry
         uses: docker/login-action@v2
         with:
-          registry: https://gitea.cymbaldev.local
+          registry: https://${{ GITEA_URL }}
           username: cybot
           password: ${{ secrets.PAT_TOKEN }}
       - name: Build and push
         run: |
-          docker build -f prod.dockerfile -t gitea.cymbaldev.local/cymbaldev/comfy:${{ github.ref_name }} .
-          docker push gitea.cymbaldev.local/cymbaldev/comfy:${{ github.ref_name }}
+          docker build -f prod.dockerfile -t ${{ GITEA_URL }}/${{ github.repository }}:${{ github.ref_name }} .
+          docker push ${{ GITEA_URL }}/${{ github.repository }}:${{ github.ref_name }}
